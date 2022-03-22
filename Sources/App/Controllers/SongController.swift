@@ -41,16 +41,18 @@ struct SongController: RouteCollection {
     func update(req: Request) throws -> EventLoopFuture<Song> {
         guard let songInformation = try? req.content.decode(Song.self) else { throw Abort(.unprocessableEntity) }
         guard let id: UUID = req.parameters.get("songID"),
-              let artist = songInformation.artist else { throw Abort(.partialContent) }
-        
+              let artist = songInformation.artist,
+              let title = req.parameters.get("title"),
+              let length: Int = req.parameters.get("length") else { throw Abort(.partialContent) }
+                
         return Song.query(on: req.db)
             .filter(\.$id == id)
             .filter(\.$artist == artist)
             .first()
             .unwrap(or: Abort(.notFound))
             .flatMap { song in
-                song.title = songInformation.title ?? song.title
-                song.length = songInformation.length ?? song.length
+                song.title = title
+                song.length = length
                 return song.update(on: req.db).transform(to: song)
             }
     }

@@ -26,30 +26,30 @@ struct SongController: RouteCollection {
     }
     
     func get(req: Request) throws  -> EventLoopFuture<Song> {
-        guard let id: UUID = req.parameters.get("songID") else {
-            throw Abort(.partialContent)
-        }
+        guard let id: UUID = req.parameters.get("songID") else { throw RouteError.notFound }
         return Song.find(id, on: req.db)
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: RouteError.notFound)
     }
     
     func create(req: Request) throws -> EventLoopFuture<Song> {
-        let song = try req.content.decode(Song.self)
+        guard let song = try? req.content.decode(Song.self) else { throw RouteError.unsupportedMediaType }
         return song.save(on: req.db).transform(to: song)
     }
     
     func update(req: Request) throws -> EventLoopFuture<Song> {
-        guard let songInformation = try? req.content.decode(Song.self) else { throw Abort(.unprocessableEntity) }
+        guard let songInformation = try? req.content.decode(Song.self) else { throw RouteError.unsupportedMediaType }
         guard let id: UUID = req.parameters.get("songID"),
               let artist = songInformation.artist,
               let title = songInformation.title,
-              let length: Int = songInformation.length else { throw Abort(.partialContent) }
+              let length: Int = songInformation.length else {
+                  throw RouteError.partialInformation("Requires artist: <String>, title: <String>, and length: <Int>")
+              }
                 
         return Song.query(on: req.db)
             .filter(\.$id == id)
             .filter(\.$artist == artist)
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: RouteError.notFound)
             .flatMap { song in
                 song.title = title
                 song.length = length
@@ -58,15 +58,17 @@ struct SongController: RouteCollection {
     }
     
     func delete(req: Request) throws -> EventLoopFuture<Song> {
-        guard let songInformation = try? req.content.decode(Song.self) else { throw Abort(.unprocessableEntity) }
+        guard let songInformation = try? req.content.decode(Song.self) else { throw RouteError.unsupportedMediaType }
         guard let id: UUID = req.parameters.get("songID"),
-              let artist = songInformation.artist else { throw Abort(.partialContent) }
+              let artist = songInformation.artist else {
+                  throw RouteError.partialInformation("Requires artist: <String>")
+              }
         
         return Song.query(on: req.db)
             .filter(\.$id == id)
             .filter(\.$artist == artist)
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: RouteError.notFound)
             .flatMap { song in
                 song.delete(on: req.db).transform(to: song)
             }

@@ -42,8 +42,8 @@ struct SongController: RouteCollection {
         guard let songInformation = try? req.content.decode(Song.self) else { throw Abort(.unprocessableEntity) }
         guard let id: UUID = req.parameters.get("songID"),
               let artist = songInformation.artist,
-              let title = req.parameters.get("title"),
-              let length: Int = req.parameters.get("length") else { throw Abort(.partialContent) }
+              let title = songInformation.title,
+              let length: Int = songInformation.length else { throw Abort(.partialContent) }
                 
         return Song.query(on: req.db)
             .filter(\.$id == id)

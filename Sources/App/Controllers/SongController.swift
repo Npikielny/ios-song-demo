@@ -15,6 +15,7 @@ struct SongController: RouteCollection {
         songs.get(":songID", use: get)
         
         songs.post(use: create)
+        songs.post("populate", use: populate)
         
         songs.put(":songID", use: update)
         
@@ -34,6 +35,18 @@ struct SongController: RouteCollection {
     func create(req: Request) throws -> EventLoopFuture<Song> {
         guard let song = try? req.content.decode(Song.self) else { throw RouteError.unsupportedMediaType }
         return song.save(on: req.db).transform(to: song)
+    }
+    
+    func populate(req: Request) -> EventLoopFuture<HTTPResponseStatus> {
+        let pursuitOfHappiness = Song(title: "Pursuit of Happiness", artist: "Kid Cudi", length: 3*60+47)
+        let chineseNewYear = Song(title: "Chinese New Year", artist: "SALES", length: 2 * 60 + 40)
+        let whiteFerrari = Song(title: "White Ferrari", artist: "Frank Ocean", length: 4 * 60 + 8)
+        let aaronSong = Song(title: "Aaron's Song", artist: "Aaron", length: 0)
+        let celesteSong = Song(title: "Idk", artist: "Celeste", length: 3)
+        
+        return [chineseNewYear, whiteFerrari, aaronSong, celesteSong].reduce(pursuitOfHappiness.save(on: req.db)) { result, next in
+            result.transform(to: next.save(on: req.db))
+        }.transform(to: HTTPResponseStatus.ok)
     }
     
     func update(req: Request) throws -> EventLoopFuture<Song> {

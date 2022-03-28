@@ -17,6 +17,12 @@ All endpoints use the following `Song` model:
 
 Both id and timeStamp are fully managed by the backend.
 
+### Status Codes
+200: Success
+400: Partial Information – The route was not supplied with enough information (whether parameters or body)
+400: Unsupported Media Type – Unable to convert request body into a Song. This usually arises from having no body.
+401: Unauthorized
+
 ### GET /
 Return Type: `String`
 Requirements: None

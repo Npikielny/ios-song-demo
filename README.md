@@ -5,13 +5,15 @@ A simple server in Swift (Fluent & Vapor) for use in AppDev's Intro to iOS Cours
 ## Endpoints
 
 All endpoints use the following `Song` model:
-```{
+```
+{
     id: <UUID?>,
     title: <String?>,
     artist: <String?>
     length: <Int?>
     timeStamp: <Date?>
-}```
+}
+```
 
 Both id and timeStamp are fully managed by the backend.
 

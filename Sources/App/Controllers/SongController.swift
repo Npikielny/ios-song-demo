@@ -34,6 +34,7 @@ struct SongController: RouteCollection {
     
     func create(req: Request) throws -> EventLoopFuture<Song> {
         guard let song = try? req.content.decode(Song.self) else { throw RouteError.unsupportedMediaType }
+        guard let _ = song.artist, let _ = song.title, let _ = song.length else { throw RouteError.partialInformation("Route requires, artist, title, and length") }
         return song.save(on: req.db).transform(to: song)
     }
     

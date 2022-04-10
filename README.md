@@ -26,6 +26,8 @@ Both id and timeStamp are fully managed by the backend.
 
 401: Unauthorized
 
+404: Not found
+
 ### GET /
 Return Type: `String`
 Requirements: None
@@ -67,4 +69,8 @@ Returns: a success code
 
 ### DELETE /songs/{songId}/
 Return Type: `Song`
+Requirements:
+    - parameter: id
+    - body: artist
+     
 
